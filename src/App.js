@@ -24,10 +24,12 @@ function CircularIndeterminate() {
 
 function Fetcher() {
   const [resp, setResp] = React.useState("");
+  const [repo, setRepo] = React.useState(0);
   const [isInProgress, setProgress] = React.useState(false);
 
   const handleSubmit = (event) => {
     event.preventDefault();
+
     const data = new FormData(event.currentTarget);
     const username = data.get("username");
     if (!username) return;
@@ -35,12 +37,19 @@ function Fetcher() {
       username,
     });
 
+    if (resp && username === Object.keys(resp).toString()) return;
+
     setProgress(() => true);
     const url = `http://127.0.0.1:5050/gpfetcher/scraper/${username}`;
     fetch(url)
       .then((data) => data.json())
       .then((res) => {
         setResp(() => res);
+
+        let len = Object.keys(res[username]).length - 1;
+        len += Object.keys(res[username]["FORKED"]).length;
+
+        setRepo(() => len);
         setProgress(() => false);
       })
       .catch((err) => console.log(err));
@@ -132,6 +141,7 @@ function Fetcher() {
             </pre>
 
             <Box sx={{ position: "absolute", top: "10px", right: "10px" }}>
+              {repo} repositories found
               <Tooltip title="Copy">
                 <IconButton onClick={copyText}>
                   <ContentCopyIcon />
